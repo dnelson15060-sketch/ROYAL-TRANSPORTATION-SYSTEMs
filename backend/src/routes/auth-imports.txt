@@ -1,0 +1,2 @@
+// Add this import at top of auth.js
+const { body } = require('express-validator');
