@@ -1,0 +1,48 @@
+name: royal_transportation
+description: Royal Transportation System - Parent & Driver Mobile App
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  cloud_firestore: ^4.15.3
+  firebase_messaging: ^14.7.20
+
+  # Maps & Location
+  google_maps_flutter: ^2.5.3
+  geolocator: ^10.1.0
+
+  # Networking
+  http: ^1.1.0
+
+  # State management
+  provider: ^6.1.1
+
+  # Notifications & storage
+  flutter_local_notifications: ^16.3.2
+  shared_preferences: ^2.2.2
+
+  # Utilities
+  intl: ^0.18.1
+  cupertino_icons: ^1.0.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.8
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/

@@ -1,5 +1,9 @@
 # Royal Transportation System 🚌
 
+[![Backend CI](https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs/actions/workflows/backend-ci.yml/badge.svg)](https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs/actions/workflows/backend-ci.yml)
+[![Admin CI](https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs/actions/workflows/admin-ci.yml/badge.svg)](https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs/actions/workflows/admin-ci.yml)
+[![Mobile CI](https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs/actions/workflows/mobile-ci.yml/badge.svg)](https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs/actions/workflows/mobile-ci.yml)
+
 A comprehensive mobile and web platform for managing school transportation, driver tracking, parent notifications, and student safety for Royal Transportation.
 
 ## 📋 Project Overview
@@ -58,44 +62,64 @@ Royal Transportation System is an integrated solution that connects:
 
 ```
 royal-transportation-system/
+├── .github/
+│   └── workflows/                 # GitHub Actions CI/CD
+│       ├── backend-ci.yml         # Backend lint + test + Docker build
+│       ├── admin-ci.yml           # Admin dashboard lint + test + build
+│       └── mobile-ci.yml          # Flutter analyze + test + APK build
 ├── docs/                          # Documentation
 │   ├── Requirements.md
 │   ├── Architecture.md
 │   ├── API.md
 │   ├── Database.md
-│   └── Deployment.md
-│
+│   ├── Deployment.md
+│   └── Firebase-Setup.md
 ├── mobile_app/                    # Flutter Mobile Application
 │   ├── lib/
-│   │   ├── core/                 # Core utilities
+│   │   ├── config/               # App config, colors, routes
 │   │   ├── models/               # Data models
-│   │   ├── services/             # Business logic
-│   │   ├── providers/            # State management
-│   │   ├── widgets/              # Reusable components
-│   │   ├── screens/              # UI screens
-│   │   ├── theme/                # App theming
+│   │   ├── services/             # Auth, GPS, API, FCM services
+│   │   ├── providers/            # State management (Provider)
+│   │   ├── screens/
+│   │   │   ├── auth/             # Login, Register
+│   │   │   ├── parent/           # Live map, child status, notifications
+│   │   │   └── driver/           # Route list, active route, attendance
+│   │   ├── widgets/              # Reusable UI components
 │   │   └── main.dart
-│   └── pubspec.yaml
-│
-├── backend/                       # Node.js Backend
+│   ├── test/                     # Flutter unit + widget tests
+│   ├── pubspec.yaml
+│   └── .env.example
+├── backend/                       # Node.js + Express API
 │   ├── src/
-│   │   ├── auth/                 # Authentication
-│   │   ├── users/                # User management
-│   │   ├── students/             # Student management
-│   │   ├── drivers/              # Driver management
-│   │   ├── gps/                  # GPS tracking
-│   │   ├── routes/               # Route management
-│   │   ├── payments/             # Payment processing
-│   │   ├── messaging/            # Messaging service
-│   │   ├── complaints/           # Complaint system
-│   │   ├── notifications/        # Notifications
-│   │   └── reports/              # Reporting
+│   │   ├── config/               # Firebase Admin, constants
+│   │   ├── middleware/            # Auth, error handler, validation
+│   │   ├── routes/               # health, auth, users, drivers,
+│   │   │                         #   students, routes, gps,
+│   │   │                         #   attendance, notifications
+│   │   └── services/             # Business logic services
+│   ├── scripts/
+│   │   └── seed.js               # Demo data seed script
+│   ├── tests/                    # Jest unit + integration tests
+│   ├── Dockerfile
 │   ├── package.json
-│   └── server.js
-│
-├── admin_dashboard/              # Flutter Web Admin Panel
+│   └── .env.example
+├── admin_dashboard/               # React + Vite Admin Web App
+│   ├── src/
+│   │   ├── components/           # UI primitives + layout
+│   │   ├── pages/                # auth, dashboard, users, drivers,
+│   │   │                         #   students, routes, notifications
+│   │   ├── services/             # API + Firebase Auth services
+│   │   ├── contexts/             # AuthContext
+│   │   ├── hooks/                # useAuth, useApi
+│   │   └── types/                # TypeScript interfaces
+│   ├── package.json
+│   └── .env.example
 ├── firebase/                      # Firebase configuration
-├── assets/                        # Images, icons, logos
+│   ├── firestore.rules            # Firestore security rules
+│   ├── firestore.indexes.json     # Composite indexes
+│   └── firebase.json              # Firebase CLI config
+├── docker-compose.yml             # Local multi-service stack
+├── start.sh                       # One-command local startup
 └── .gitignore
 ```
 
@@ -118,41 +142,138 @@ main                              # Production releases
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Flutter SDK (3.0+)
-- Node.js (18+)
-- Firebase account
-- Google Maps API key
-- Git
 
-### Mobile App Setup
+| Tool | Minimum Version | Install |
+|------|----------------|---------|
+| Node.js | 18.x | https://nodejs.org |
+| Flutter | 3.19+ | https://flutter.dev |
+| Firebase CLI | Latest | `npm i -g firebase-tools` |
+| Git | 2.x | https://git-scm.com |
+
+### Quick Start (All Components)
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/dnelson15060-sketch/ROYAL-TRANSPORTATION-SYSTEMs.git
+cd ROYAL-TRANSPORTATION-SYSTEMs
+
+# 2. Run the startup script (installs deps + starts backend + admin dashboard)
+./start.sh
+```
+
+This will:
+- Install backend and admin dashboard dependencies
+- Copy `.env.example` → `.env` files for you to configure
+- Start the backend API on http://localhost:3000
+- Start the admin dashboard on http://localhost:5173
+
+### Manual Setup
+
+#### 1. Backend API
+
+```bash
+cd backend
+cp .env.example .env          # Edit with your Firebase credentials
+npm install
+npm run dev                   # Start with auto-reload (nodemon)
+# or: npm start               # Production start
+
+# Seed demo data
+npm run seed
+
+# Run tests
+npm test
+```
+
+#### 2. Admin Dashboard
+
+```bash
+cd admin_dashboard
+cp .env.example .env          # Edit with your Firebase web config
+npm install
+npm run dev                   # Start Vite dev server
+
+# Run tests
+npm test
+
+# Production build
+npm run build
+```
+
+#### 3. Mobile App
+
 ```bash
 cd mobile_app
 flutter pub get
-flutter run
-```
 
-### Backend Setup
-```bash
-cd backend
-npm install
-npm start
+# Configure Firebase (required before running)
+# Install FlutterFire CLI: dart pub global activate flutterfire_cli
+# Then run: flutterfire configure --project=YOUR_FIREBASE_PROJECT_ID
+
+# Run on connected device/emulator
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
+
+# Run tests
+flutter test
 ```
 
 ### Firebase Setup
-1. Create Firebase project
-2. Configure authentication
-3. Set up Firestore database
-4. Enable Cloud Messaging
-5. Configure Storage rules
+
+See [docs/Firebase-Setup.md](docs/Firebase-Setup.md) for the full guide. Quick steps:
+
+1. Create a Firebase project at https://console.firebase.google.com
+2. Enable **Authentication** (Email/Password)
+3. Enable **Firestore** in production mode
+4. Enable **Cloud Messaging**
+5. Create a **Service Account** key for the backend
+6. Deploy Firestore security rules:
+   ```bash
+   cd firebase
+   firebase deploy --only firestore:rules,firestore:indexes
+   ```
+
+### Environment Variables
+
+Each component has a `.env.example` file. Copy and fill in your values:
+
+| File | Purpose |
+|------|---------|
+| `backend/.env.example` | Firebase Admin SDK, server config |
+| `admin_dashboard/.env.example` | Firebase Web SDK, API URL |
+| `mobile_app/.env.example` | API base URL, Firebase project ID |
+
+> ⚠️ **Never commit `.env` files.** They are listed in `.gitignore`.
+
+### Demo Data
+
+After setting up Firebase, seed demo data:
+
+```bash
+cd backend && npm run seed
+```
+
+This creates:
+- **Admin**: `admin@royal.com` (password set in Firebase Auth manually)
+- **Drivers**: `driver1@royal.com`, `driver2@royal.com`
+- **Parents**: 5 parent accounts
+- **Students**: 8 students linked to parents
+- **Routes**: 3 routes with stops
+- **Buses**: 2 bus records
+
+### Happy-Path Demo Flow
+
+1. **Admin** logs into Admin Dashboard → creates route → assigns driver and students
+2. **Driver** logs into mobile app → sees assigned route → taps "Start Route" → GPS location broadcasts every 30s
+3. **Parent** logs into mobile app → sees live bus location on map → receives push notification when driver starts route
 
 ## 📊 Development Phases
 
-| Phase | Duration | Deliverables |
-|-------|----------|--------------|
-| **Phase 1: MVP** | 6-8 weeks | Authentication, Tracking, Notifications |
-| **Phase 2: Features** | 4-6 weeks | Messaging, Attendance, Management |
-| **Phase 3: Payments** | 4-6 weeks | Payment integration, Reports |
-| **Phase 4: Polish** | 3-4 weeks | AI, QR codes, App Store launch |
+| Phase | Status | Deliverables |
+|-------|--------|--------------|
+| **Phase 1: MVP** | 🟢 Complete | Authentication, GPS Tracking, Notifications, Core Dashboards |
+| **Phase 2: Features** | 🔵 Planned | In-app Messaging, Advanced Attendance, Complaints |
+| **Phase 3: Payments** | 🔵 Planned | Stripe + WiPay, Invoicing, Financial Reports |
+| **Phase 4: Polish** | 🔵 Planned | AI Route Optimization, QR Codes, App Store Release |
 
 ## 🎨 UI Theme
 
@@ -208,4 +329,5 @@ This project is licensed under the MIT License - see LICENSE file for details.
 ---
 
 **Last Updated**: July 2026
-**Status**: 🟡 In Development (Phase 1 - MVP)
+**Status**: 🟢 MVP Complete (Phase 1)
+**Version**: 1.0.0
