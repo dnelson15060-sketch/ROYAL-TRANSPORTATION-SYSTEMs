@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { PageHeader } from '../../components/shared/PageHeader';
 import { Button } from '../../components/ui/Button';
@@ -10,10 +10,16 @@ import { getApiErrorMessage, useApiMutation, useApiQuery } from '../../hooks/use
 import {
   getNotificationHistory,
   sendNotification,
-  type SendNotificationPayload,
 } from '../../services/notificationService';
 import type { Notification } from '../../types';
 import { formatDateTime } from '../../utils/helpers';
+
+interface NotificationFormValues {
+  recipientMode: 'all' | 'specific';
+  targetUserId: string;
+  title: string;
+  body: string;
+}
 
 export function NotificationsPage() {
   const queryClient = useQueryClient();
@@ -27,17 +33,41 @@ export function NotificationsPage() {
     register,
     handleSubmit,
     reset,
+    control,
+    setError,
     formState: { errors },
-  } = useForm<SendNotificationPayload>({
-    defaultValues: { userId: 'all', title: '', body: '' },
+  } = useForm<NotificationFormValues>({
+    defaultValues: {
+      recipientMode: 'all',
+      targetUserId: '',
+      title: '',
+      body: '',
+    },
   });
+
+  const recipientMode = useWatch({ control, name: 'recipientMode' });
 
   const sendNotificationMutation = useApiMutation(sendNotification, {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      reset({ userId: 'all', title: '', body: '' });
+      reset({ recipientMode: 'all', targetUserId: '', title: '', body: '' });
     },
   });
+
+  function onSubmit(values: NotificationFormValues) {
+    if (values.recipientMode === 'specific' && !values.targetUserId.trim()) {
+      setError('targetUserId', {
+        message: 'Enter a user ID to target a specific recipient',
+      });
+      return;
+    }
+    sendNotificationMutation.mutate({
+      userId:
+        values.recipientMode === 'all' ? 'all' : values.targetUserId.trim(),
+      title: values.title,
+      body: values.body,
+    });
+  }
 
   const columns: TableColumn<Notification>[] = [
     { header: 'Recipient', accessor: (notification) => notification.userId },
@@ -62,7 +92,7 @@ export function NotificationsPage() {
 
       <Card title="Send Notification" className="mb-6">
         <form
-          onSubmit={handleSubmit((values) => sendNotificationMutation.mutate(values))}
+          onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-4"
           noValidate
         >
@@ -70,21 +100,21 @@ export function NotificationsPage() {
             <span className="text-sm font-medium text-gray-700">Recipient</span>
             <select
               className="rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-200"
-              {...register('userId', { required: true })}
+              {...register('recipientMode', { required: true })}
             >
               <option value="all">All Users</option>
+              <option value="specific">Specific User</option>
             </select>
-            <span className="text-xs text-gray-500">
-              Enter a specific Firebase user ID below to target one recipient
-              instead.
-            </span>
           </label>
 
-          <Input
-            label="Target User ID (optional override)"
-            placeholder="Leave blank to use the selection above"
-            {...register('userId')}
-          />
+          {recipientMode === 'specific' && (
+            <Input
+              label="Target User ID"
+              placeholder="Firebase UID of the recipient"
+              error={errors.targetUserId?.message}
+              {...register('targetUserId')}
+            />
+          )}
 
           <Input
             label="Title"
