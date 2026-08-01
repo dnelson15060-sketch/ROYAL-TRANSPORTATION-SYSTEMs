@@ -12,6 +12,9 @@ on:
       - 'admin_dashboard/**'
       - '.github/workflows/admin-ci.yml'
 
+permissions:
+  contents: read
+
 jobs:
   lint-test-build:
     name: Lint, Test & Build
