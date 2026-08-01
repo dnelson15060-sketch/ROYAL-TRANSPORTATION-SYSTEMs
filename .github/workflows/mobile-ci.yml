@@ -12,6 +12,9 @@ on:
       - 'mobile_app/**'
       - '.github/workflows/mobile-ci.yml'
 
+permissions:
+  contents: read
+
 jobs:
   lint-test-build:
     name: Lint, Test & Build (Android)
