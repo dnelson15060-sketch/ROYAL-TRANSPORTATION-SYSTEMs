@@ -222,6 +222,28 @@ This will:
 - Auto-generate `firebase_options.dart`
 - Update Android/iOS configs
 
+### 5.4 Configure Google Maps keys without hardcoding
+
+- Android reads `GOOGLE_MAPS_API_KEY` from the build environment and injects it into the manifest.
+- iOS reads `GOOGLE_MAPS_API_KEY` from `ios/Flutter/MapsConfig.xcconfig` (create it from `MapsConfig.xcconfig.example`) and exposes it through `Info.plist`.
+- Do not commit real Maps keys.
+
+### 5.5 Configure Android release signing
+
+1. Copy `mobile_app/android/key.properties.example` to `mobile_app/android/key.properties`
+2. Fill in:
+   - `ANDROID_STORE_FILE`
+   - `ANDROID_KEYSTORE_PASSWORD`
+   - `ANDROID_KEY_ALIAS`
+   - `ANDROID_KEY_PASSWORD`
+3. Place the keystore file at `mobile_app/app-release.keystore` or inject it in CI via `ANDROID_KEYSTORE_BASE64`
+4. Build with:
+
+```bash
+cd mobile_app
+flutter build appbundle --release
+```
+
 ---
 
 ## Step 6: Firestore Database Setup

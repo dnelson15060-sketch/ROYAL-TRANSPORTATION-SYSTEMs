@@ -211,62 +211,76 @@ firebase deploy --only firestore:indexes
 
 ### GitHub Actions Workflow
 
-**File**: `.github/workflows/deploy.yml`
+Current repository workflows live under `.github/workflows/`:
+
+- `backend-ci.yml` — backend lint, tests, and Docker build validation
+- `admin-ci.yml` — admin dashboard lint, tests, and production build validation
+- `mobile-ci.yml` — Flutter analysis, tests, debug APK build, and release app bundle validation
+
+There is currently no checked-in `.github/workflows/deploy.yml`; use the deployment commands below from your release pipeline or add a dedicated deploy workflow separately.
 
 ```yaml
-name: Deploy
+# Validation workflow paths:
+# - .github/workflows/backend-ci.yml
+# - .github/workflows/admin-ci.yml
+# - .github/workflows/mobile-ci.yml
+```
 
-on:
-  push:
-    branches:
-      - main
-      - development
+### Required environment and secret inputs
 
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: cd backend && npm install && npm test
+- **Backend (`backend/.env`)**
+  - `PORT`
+  - `NODE_ENV`
+  - `FIREBASE_PROJECT_ID`
+  - `FIREBASE_CLIENT_EMAIL`
+  - `FIREBASE_PRIVATE_KEY`
+  - `FIREBASE_DATABASE_URL` (when used)
+  - `ALLOWED_ORIGINS`
+  - `APP_VERSION`
+- **Admin (`admin_dashboard/.env`)**
+  - `VITE_API_BASE_URL`
+  - `VITE_FIREBASE_API_KEY`
+  - `VITE_FIREBASE_AUTH_DOMAIN`
+  - `VITE_FIREBASE_PROJECT_ID`
+  - `VITE_FIREBASE_STORAGE_BUCKET`
+  - `VITE_FIREBASE_MESSAGING_SENDER_ID`
+  - `VITE_FIREBASE_APP_ID`
+- **Mobile (`mobile_app/.env`, native signing/config files)**
+  - `API_BASE_URL`
+  - `FIREBASE_PROJECT_ID`
+  - `GOOGLE_MAPS_API_KEY`
+  - `ANDROID_STORE_FILE`
+  - `ANDROID_KEYSTORE_PASSWORD`
+  - `ANDROID_KEY_ALIAS`
+  - `ANDROID_KEY_PASSWORD`
+  - optional CI-only `ANDROID_KEYSTORE_BASE64`
 
-  deploy-backend:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v3
-      - uses: google-github-actions/setup-gcloud@v1
-        with:
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          project_id: royal-transportation
-      - run: |
-          cd backend
-          docker build -t gcr.io/royal-transportation/api:${{ github.sha }} .
-          docker push gcr.io/royal-transportation/api:${{ github.sha }}
-          gcloud run deploy royal-api \
-            --image gcr.io/royal-transportation/api:${{ github.sha }} \
-            --region us-central1
+### Release-candidate validation steps
 
-  deploy-mobile:
-    needs: test
-    runs-on: macos-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v3
-      - uses: subosito/flutter-action@v2
-      - run: |
-          cd mobile_app
-          flutter pub get
-          flutter build web --release
-      - uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-          channelId: live
-          projectId: royal-transportation
+Run the same commands locally or in CI to validate a release candidate:
+
+```bash
+# Backend
+cd backend
+npm ci
+npm run lint
+npm test -- --runInBand
+
+# Admin dashboard
+cd ../admin_dashboard
+npm ci
+npm run lint
+npm test
+npm run build
+
+# Mobile app
+cd ../mobile_app
+flutter pub get
+dart format --output=none --set-exit-if-changed lib/
+flutter analyze
+flutter test --coverage
+flutter build apk --debug
+flutter build appbundle --release
 ```
 
 ## Monitoring and Logging

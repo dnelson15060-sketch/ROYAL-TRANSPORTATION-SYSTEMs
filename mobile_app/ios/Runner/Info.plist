@@ -70,5 +70,7 @@
 	<string>Royal Transportation uses your location to track the school bus route.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Royal Transportation uses your location in the background to keep parents updated on the bus route.</string>
+	<key>GMSApiKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 </dict>
 </plist>

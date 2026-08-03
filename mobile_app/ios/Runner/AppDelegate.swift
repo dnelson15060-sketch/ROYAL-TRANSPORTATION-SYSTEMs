@@ -8,9 +8,12 @@ import GoogleMaps
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // TODO: Replace with your Google Maps API key (see .env.example /
-    // docs/Firebase-Setup.md). Do not commit a real key to source control.
-    GMSServices.provideAPIKey("YOUR_GOOGLE_MAPS_API_KEY")
+    if let apiKey = Bundle.main.object(forInfoDictionaryKey: "GMSApiKey") as? String,
+      !apiKey.isEmpty,
+      apiKey != "MISSING_GOOGLE_MAPS_API_KEY"
+    {
+      GMSServices.provideAPIKey(apiKey)
+    }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

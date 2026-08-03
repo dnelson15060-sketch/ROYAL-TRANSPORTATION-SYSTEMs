@@ -56,6 +56,7 @@ app.*.map.json
 **/ios/Flutter/app.zip
 **/ios/Flutter/flutter_assets/
 **/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/MapsConfig.xcconfig
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
 **/ios/Pods/
@@ -70,4 +71,5 @@ app.*.map.json
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+**/android/app-release.keystore
 *.jks
